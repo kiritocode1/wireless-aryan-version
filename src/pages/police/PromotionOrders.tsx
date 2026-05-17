@@ -1,213 +1,68 @@
-// import { useState } from "react";
-// import { Button } from "@/components/ui/button";
-// import { Card } from "@/components/ui/card";
-// import { ArrowLeft, FileText, Download } from "lucide-react";
-// import { useNavigate } from "react-router";
-// import { useLanguage } from "@/contexts/LanguageContext";
-
-// export default function PromotionOrders() {
-//   const navigate = useNavigate();
-//   const goBack = () => navigate("/");
-//   const { t } = useLanguage();
-
-//  const promotionOrders = [
-//   { title: t("f3k9"), size: "996.97 KB", link: "https://mahpolwireless.stagingdsi.co.in/UploadedFiles/PromotionOrders/145.pdf" },
-//   { title: t("p7q2"), size: "408.09 KB", link: "file:///C:/Users/saura/Downloads/139.pdf" },
-//   { title: t("l8z4"), size: "965.81 KB", link: "file:///C:/Users/saura/Downloads/136.pdf" },
-// ];
-
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const entriesPerPage = 20;
-
-//   const filteredOrders = promotionOrders.filter((order) =>
-//     order.title.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-//   const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
-//   const startIndex = (currentPage - 1) * entriesPerPage;
-//   const paginatedOrders = filteredOrders.slice(
-//     startIndex,
-//     startIndex + entriesPerPage
-//   );
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-950 dark:to-black text-gray-900 dark:text-gray-100 px-6 py-12 sm:px-12 lg:px-24 relative overflow-hidden transition-colors duration-500">
-//       <div className="absolute inset-0 -z-10">
-//         <div className="absolute top-32 left-40 w-96 h-96 bg-blue-600/20 blur-3xl rounded-full"></div>
-//         <div className="absolute bottom-32 right-40 w-[32rem] h-[32rem] bg-blue-800/20 blur-3xl rounded-full"></div>
-//       </div>
-
-//       <div className="max-w-6xl mx-auto space-y-10">
-//         <Button
-//           variant="ghost"
-//           onClick={goBack}
-//           className="flex items-center text-gray-900 dark:text-gray-100 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-300 rounded-xl px-4 py-2 shadow-md hover:shadow-blue-200 dark:hover:shadow-blue-900/30 mb-6"
-//         >
-//           <ArrowLeft className="w-4 h-4 mr-2" /> {t("q1w2")}
-//         </Button>
-
-//         <div className="text-center space-y-4">
-//           <h1 className="text-5xl md:text-6xl p-3 font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent drop-shadow-lg">
-//             {t("m9z8")}
-//           </h1>
-//           <h2 className="text-lg md:text-xl font-medium text-gray-600 dark:text-gray-300">
-//             {t("v4b7")}
-//           </h2>
-//         </div>
-
-//         <Card className="p-6 rounded-3xl shadow-lg bg-white/70 dark:bg-gray-900/70 backdrop-blur-lg border border-gray-200 dark:border-gray-800">
-//           <div className="flex justify-between items-center mb-4">
-
-//             <input
-//               type="text"
-//               placeholder={t("r2p6")}
-//               className="px-4 py-2 border rounded-lg w-60 shadow-sm focus:ring focus:ring-blue-300 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-//               value={searchTerm}
-//               onChange={(e) => {
-//                 setSearchTerm(e.target.value);
-//                 setCurrentPage(1);
-//               }}
-//             />
-//           </div>
-
-//           <div className="overflow-x-auto">
-//             <table className="w-full text-left border-collapse">
-//               <thead>
-//                 <tr className="bg-gradient-to-r from-blue-600 to-blue-800 text-white dark:from-blue-700 dark:to-blue-900">
-//                   <th className="py-3 px-4 font-semibold">{t("t8n1")}</th>
-//                   <th className="py-3 px-4 font-semibold">{t("k4f5")}</th>
-//                   <th className="py-3 px-4 font-semibold">{t("z3v9")}</th>
-//                 </tr>
-//               </thead>
-//               <tbody>
-//                 {paginatedOrders.map((order, idx) => (
-//                   <tr
-//                     key={idx}
-//                     className="border-b border-gray-200 dark:border-gray-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-//                   >
-//                     <td className="py-3 px-4 flex items-center gap-2">
-//                       <FileText className="w-5 h-5 text-blue-600 dark:text-blue-500" />
-//                       {order.title}
-//                     </td>
-//                     <td className="py-3 px-4 text-blue-700 dark:text-blue-400 cursor-pointer hover:underline">
-//                       ({order.size})
-//                     </td>
-//                     <td className="py-3 px-4">
-//   <a href={order.link} download>
-//     <Button
-//       size="sm"
-//       variant="outline"
-//       className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900"
-//     >
-//       <Download className="w-4 h-4" /> {t("download")}
-//     </Button>
-//   </a>
-// </td>
-
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-
-//           <div className="flex justify-between items-center mt-6">
-//             <span className="text-blue-700 dark:text-blue-300 font-medium">
-//               {t("d7x2")} {currentPage} {t("y8c3")} {totalPages}
-//             </span>
-//             <div className="space-x-2">
-//               <Button
-//                 size="sm"
-//                 variant="outline"
-//                 disabled={currentPage === 1}
-//                 onClick={() => setCurrentPage((p) => p - 1)}
-//                 className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-400 dark:hover:text-gray-900"
-//               >
-//                 {t("u5w1")}
-//               </Button>
-             
-//             </div>
-//           </div>
-//         </Card>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, Download } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { formatDate, type Lang } from "@/lib/format";
+
+type Order = {
+  id: string;
+  title_en: string;
+  title_mr: string;
+  pdf_url: string | null;
+  published_date: string;
+};
+
+const labels = {
+  en: {
+    title: "Promotion Orders",
+    back: "Back to Home",
+    srno: "Sr. No.",
+    date: " Date",
+    orderTitle: " Title",
+    view: "View",
+    download: "Download",
+    none: "No promotion orders available currently.",
+    loading: "Loading…",
+    error: "Failed to load.",
+  },
+  mr: {
+    title: "पदोन्नती आदेश",
+    back: "मुख्यपृष्ठावर जा",
+    srno: "अ. क्र.",
+    date: " दिनांक",
+    orderTitle: " शीर्षक",
+    view: "पहा",
+    download: "डाउनलोड",
+    none: "सध्या कोणतेही पदोन्नती आदेश उपलब्ध नाहीत.",
+    loading: "लोड होत आहे…",
+    error: "लोड करता आले नाही.",
+  },
+};
 
 export default function PromotionOrders() {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const lang: Lang = language === "mr" ? "mr" : "en";
+  const L = labels[lang];
   const goBack = () => navigate("/");
 
-  // 📋 Promotion Orders Data (add uploadDate for sorting)
-  const promotionOrders = [
-    {
-      id: 1,
-      title_en: "Promotion Order – January 2025",
-      title_mr: "पदोन्नती आदेश – जानेवारी २०२५",
-      size: "996.97 KB",
-      link: "https://mahpolwireless.stagingdsi.co.in/UploadedFiles/PromotionOrders/145.pdf",
-      uploadDate: "2025-01-15",
+  const { data: orders = [], isLoading, error } = useQuery({
+    queryKey: ["public", "promotion_orders"],
+    queryFn: async (): Promise<Order[]> => {
+      const { data, error } = await supabase
+        .from("promotion_orders")
+        .select("id, title_en, title_mr, pdf_url, published_date")
+        .order("published_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
-    {
-      id: 2,
-      title_en: "Promotion Order – February 2025",
-      title_mr: "पदोन्नती आदेश – फेब्रुवारी २०२५",
-      size: "408.09 KB",
-      link: "https://mahpolwireless.stagingdsi.co.in/UploadedFiles/PromotionOrders/139.pdf",
-      uploadDate: "2025-02-20",
-    },
-    {
-      id: 3,
-      title_en: "Promotion Order – March 2025",
-      title_mr: "पदोन्नती आदेश – मार्च २०२५",
-      size: "965.81 KB",
-      link: "https://mahpolwireless.stagingdsi.co.in/UploadedFiles/PromotionOrders/136.pdf",
-      uploadDate: "2025-03-28",
-    },
-  ];
-
-  // 🔹 Sort by latest upload date
-  const sortedOrders = [...promotionOrders].sort(
-    (a, b) => new Date(b.Date) - new Date(a.Date)
-  );
-
-  const labels = {
-    en: {
-      title: "Promotion Orders",
-      back: "Back to Home",
-      srno: "Sr. No.",
-      date: " Date",
-      orderTitle: " Title",
-      view: "View",
-      download: "Download",
-      none: "No promotion orders available currently.",
-    },
-    mr: {
-      title: "पदोन्नती आदेश",
-      back: "मुख्यपृष्ठावर जा",
-      srno: "अ. क्र.",
-      date: " दिनांक",
-      orderTitle: " शीर्षक",
-      view: "पहा",
-      download: "डाउनलोड",
-      none: "सध्या कोणतेही पदोन्नती आदेश उपलब्ध नाहीत.",
-    },
-  };
-
-  const L = language === "mr" ? labels.mr : labels.en;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-950 text-gray-900 dark:text-gray-100 px-6 py-12 sm:px-12 lg:px-24 relative overflow-hidden">
-      
-      {/* 🔙 Back Button */}
       <div className="flex justify-between items-center mb-8">
         <Button
           variant="ghost"
@@ -218,18 +73,18 @@ export default function PromotionOrders() {
         </Button>
       </div>
 
-      {/* 🏷️ Heading */}
       <h1 className="text-5xl md:text-6xl font-extrabold text-center text-blue-700 dark:text-blue-400 mb-10">
         {L.title}
       </h1>
 
-      {/* 📑 Promotion Orders Table */}
       <Card className="bg-white/40 border border-gray-300 backdrop-blur-md rounded-2xl shadow-xl dark:bg-gray-800/30 dark:border-gray-700">
         <CardContent className="p-6 overflow-x-auto">
-          {sortedOrders.length === 0 ? (
-            <p className="text-center py-6 text-gray-600 dark:text-gray-300">
-              {L.none}
-            </p>
+          {isLoading ? (
+            <p className="text-center py-6 text-gray-600 dark:text-gray-300">{L.loading}</p>
+          ) : error ? (
+            <p className="text-center py-6 text-red-600 dark:text-red-400">{L.error}</p>
+          ) : orders.length === 0 ? (
+            <p className="text-center py-6 text-gray-600 dark:text-gray-300">{L.none}</p>
           ) : (
             <table className="w-full text-left border-collapse border border-gray-300 dark:border-gray-700">
               <thead>
@@ -242,41 +97,44 @@ export default function PromotionOrders() {
                 </tr>
               </thead>
               <tbody>
-                {sortedOrders.map((order, index) => (
+                {orders.map((order, index) => (
                   <tr
                     key={order.id}
                     className="hover:bg-blue-50 dark:hover:bg-blue-900/20 text-center transition-all"
                   >
                     <td className="border border-gray-300 px-3 py-2">{index + 1}</td>
+                    <td className="border border-gray-300 px-3 py-2">{formatDate(order.published_date, lang)}</td>
+                    <td className="border border-gray-300 px-3 py-2 text-left">
+                      {lang === "mr" ? order.title_mr : order.title_en}
+                    </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      {new Date(order.uploadDate).toLocaleDateString(
-                        language === "mr" ? "mr-IN" : "en-IN",
-                        { year: "numeric", month: "long", day: "numeric" }
+                      {order.pdf_url ? (
+                        <a
+                          href={order.pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                        >
+                          <Eye className="w-4 h-4" /> {L.view}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="border border-gray-300 px-3 py-2 text-left">
-                      {language === "mr" ? order.title_mr : order.title_en}
-                    </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <a
-                        href={order.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                      >
-                        <Eye className="w-4 h-4" /> {L.view}
-                      </a>
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <a
-                        href={order.link}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                      >
-                        <Download className="w-4 h-4" /> {L.download} ({order.size})
-                      </a>
+                      {order.pdf_url ? (
+                        <a
+                          href={order.pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                        >
+                          <Download className="w-4 h-4" /> {L.download}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

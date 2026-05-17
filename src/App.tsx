@@ -209,7 +209,7 @@ const AppRoutes = () => (
 
       {/* 👮 Police Section */}
       <Route path="police/gazette" element={<Gazette />} />
-      <Route path="police/officers" element={<ListOfOfficers goBack={undefined} />} />
+      <Route path="police/officers" element={<ListOfOfficers />} />
       <Route path="police/promotions" element={<PromotionOrders />} />
       <Route path="police/transfers" element={<Transfers />} />
       <Route path="police/gradation" element={<GradationList />} />

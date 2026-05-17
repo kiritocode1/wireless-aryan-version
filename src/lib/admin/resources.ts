@@ -90,9 +90,9 @@ export const resourceConfigs: ResourceConfig[] = [
   // ────────── ABOUT ──────────
   {
     table: "director_current",
-    slug: "director",
-    singular: "Director",
-    plural: "Current director",
+    slug: "directors-desk",
+    singular: "Director's Desk",
+    plural: "Director's Desk",
     group: "About",
     singleton: true,
     singletonId: 1,

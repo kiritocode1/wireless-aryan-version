@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { formatDate, formatFileSize, type Lang } from "@/lib/format";
 
 type Tender = {
   id: string;
@@ -42,22 +43,10 @@ const labels = {
   },
 };
 
-const formatDate = (iso: string, lang: "en" | "mr") =>
-  new Date(iso).toLocaleDateString(lang === "mr" ? "mr-IN" : "en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-const formatSize = (kb: number | null) => {
-  if (kb == null) return "";
-  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
-  return `${kb} KB`;
-};
-
 export default function Tenders() {
   const { language } = useLanguage();
-  const L = language === "mr" ? labels.mr : labels.en;
+  const lang: Lang = language === "mr" ? "mr" : "en";
+  const L = labels[lang];
 
   const { data: tenders = [], isLoading, error } = useQuery({
     queryKey: ["public", "tenders"],
@@ -114,10 +103,10 @@ export default function Tenders() {
                   >
                     <td className="border border-gray-300 px-3 py-2">{idx + 1}</td>
                     <td className="border border-gray-300 px-3 py-2">
-                      {formatDate(tender.published_date, language === "mr" ? "mr" : "en")}
+                      {formatDate(tender.published_date, lang)}
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-left">
-                      {language === "mr" ? tender.title_mr : tender.title_en}
+                      {lang === "mr" ? tender.title_mr : tender.title_en}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       {tender.pdf_url ? (
@@ -143,7 +132,7 @@ export default function Tenders() {
                           className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                         >
                           <Download className="w-4 h-4" /> {L.download}
-                          {tender.file_size_kb ? ` (${formatSize(tender.file_size_kb)})` : ""}
+                          {tender.file_size_kb ? ` (${formatFileSize(tender.file_size_kb)})` : ""}
                         </a>
                       ) : (
                         <span className="text-muted-foreground">—</span>
