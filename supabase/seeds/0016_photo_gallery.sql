@@ -12,6 +12,6 @@ BEGIN
       ('Dr. APJ Abdul Kalam Innovation Center Inauguration', 'डॉ. एपीजे अब्दुल कलाम इनोवेशन सेंटर उद्घाटन', '/assets/gallery/Dr-APJ-Abdul-Kalam-Innovation-Centre-HM-Inaugration-1.jpg', NULL, 1),
       ('Independence Day Celebrations', 'स्वातंत्र्यदिन साजरे', '/assets/gallery/Republic-Day-4.jpg', NULL, 2),
       ('Ashok Jog Lecture Hall Inauguration', 'अशोक जोग व्याख्यानगृह उद्घाटन', '/assets/gallery/Ashok-Jog-Lecture-Hall-Inauguration-2.jpeg', NULL, 3),
-      ($$Dnyaneshwari Senior Officer's Mess Inauguration$$, 'ज्ञानेश्वरी वरिष्ठ अधिकाऱ्यांच्या मेसचे उद्घाटन', '/assets/gallery/DGP-Inaugration-1.jpg', NULL, 4);
+      ($str$Dnyaneshwari Senior Officer's Mess Inauguration$str$, 'ज्ञानेश्वरी वरिष्ठ अधिकाऱ्यांच्या मेसचे उद्घाटन', '/assets/gallery/DGP-Inaugration-1.jpg', NULL, 4);
   END IF;
 END $$;

@@ -12,7 +12,7 @@ BEGIN
       ('Canteen – Muktai', 'कॅन्टीन – मुक्ताई', NULL, NULL),
       ('Badminton Hall – Sant Tukaram Sankul', 'बॅडमिंटन हॉल – संत तुकाराम संकुल', NULL, NULL),
       ('Senior Officers Mess – Dnyaneshwari', 'वरिष्ठ अधिकाऱ्यांचे मेस – ज्ञानेश्वरी', NULL, NULL),
-      ($$Junior officer's Mess – Sanchar$$, 'कनिष्ठ अधिकाऱ्यांचे मेस – संचार', NULL, NULL),
+      ($str$Junior officer's Mess – Sanchar$str$, 'कनिष्ठ अधिकाऱ्यांचे मेस – संचार', NULL, NULL),
       ('Open Museum – Aryabhatta Garden', 'ओपन संग्रहालय – आर्यभट्ट उद्यान', NULL, NULL),
       ('Parade ground', 'परेड ग्राउंड', NULL, NULL),
       ('Maharashtra Police Wireless Welfare Complex and Convention Centre', 'महाराष्ट्र पोलीस वायरलेस कल्याण संकुल आणि परिषद केंद्र', NULL, NULL);
