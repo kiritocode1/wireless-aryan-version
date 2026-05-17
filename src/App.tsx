@@ -170,6 +170,7 @@ import AdminLayout from "./layout/AdminLayout";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminResource from "./pages/admin/Resource";
+import AdminSiteSettings from "./pages/admin/SiteSettings";
 
 
        {/* Training Calendar route */}
@@ -259,6 +260,7 @@ const AppRoutes = () => (
     <Route path="/admin" element={<ProtectedAdminRoute />}>
       <Route element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
+        <Route path="site-settings" element={<AdminSiteSettings />} />
         <Route path=":slug" element={<AdminResource />} />
       </Route>
     </Route>

@@ -6,7 +6,7 @@ import { Bucket, uploadFile } from "@/lib/admin/storage";
 import { toast } from "sonner";
 
 type Props = {
-  label: string;
+  label?: string;
   bucket: Bucket;
   value: string | null;
   onChange: (url: string | null) => void;
@@ -36,7 +36,7 @@ export default function FileUploadField({ label, bucket, value, onChange, accept
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      {label && <Label>{label}</Label>}
       {value ? (
         <div className="flex items-start gap-3 rounded-md border p-3">
           {isImage ? (

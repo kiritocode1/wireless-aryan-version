@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, LayoutDashboard } from "lucide-react";
+import { LogOut, Home, LayoutDashboard, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { resourceConfigs } from "@/lib/admin/resources";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,9 @@ export default function AdminLayout() {
           <nav className="p-4 space-y-6">
             <NavItem to="/admin" end icon={<LayoutDashboard className="w-4 h-4" />}>
               Dashboard
+            </NavItem>
+            <NavItem to="/admin/site-settings" icon={<Settings className="w-4 h-4" />}>
+              Site settings
             </NavItem>
 
             {groups.map(([group, items]) => (
