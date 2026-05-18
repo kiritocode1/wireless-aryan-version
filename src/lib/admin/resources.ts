@@ -1,0 +1,427 @@
+import { ResourceConfig } from "./types";
+
+const bilingualTitle = (required = true) => [
+  { name: "title_en", label: "Title (EN)", type: "text", required } as const,
+  { name: "title_mr", label: "Title (MR)", type: "text", required } as const,
+];
+
+const bilingualName = (required = true) => [
+  { name: "name_en", label: "Name (EN)", type: "text", required } as const,
+  { name: "name_mr", label: "Name (MR)", type: "text", required } as const,
+];
+
+const bilingualDesignation = () => [
+  { name: "designation_en", label: "Designation (EN)", type: "text" } as const,
+  { name: "designation_mr", label: "Designation (MR)", type: "text" } as const,
+];
+
+const dateAndPdf = () => [
+  { name: "published_date", label: "Published date", type: "date" } as const,
+  { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" } as const,
+];
+
+const datePdfListCols = () => [
+  { field: "published_date", label: "Date", render: "date" } as const,
+  { field: "title_en", label: "Title (EN)" } as const,
+  { field: "title_mr", label: "Title (MR)" } as const,
+  { field: "pdf_url", label: "PDF", render: "pdf" } as const,
+];
+
+const dateDescOrder = { column: "published_date", ascending: false };
+const orderDescOrder = { column: "display_order", ascending: true };
+
+export const resourceConfigs: ResourceConfig[] = [
+  // ────────── HOME PAGE ──────────
+  {
+    table: "home_slider",
+    slug: "home-slider",
+    singular: "Slide",
+    plural: "Home slider",
+    group: "Home",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "title_en", label: "Title (EN)" },
+      { field: "display_order", label: "Order" },
+      { field: "is_active", label: "Active", render: "boolean" },
+    ],
+    fields: [
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos", required: true },
+      { name: "title_en", label: "Title (EN)", type: "text" },
+      { name: "title_mr", label: "Title (MR)", type: "text" },
+      { name: "subtitle_en", label: "Subtitle (EN)", type: "text" },
+      { name: "subtitle_mr", label: "Subtitle (MR)", type: "text" },
+      { name: "display_order", label: "Display order", type: "number" },
+      { name: "is_active", label: "Active", type: "boolean" },
+    ],
+  },
+  {
+    table: "bulletins",
+    slug: "bulletins",
+    singular: "Bulletin",
+    plural: "Bulletins / Orders / Notices",
+    group: "Home",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [...bilingualTitle(), ...dateAndPdf()],
+  },
+  {
+    table: "impact_stats",
+    slug: "impact-stats",
+    singular: "Stat",
+    plural: "Impact stats",
+    group: "Home",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "label_en", label: "Label (EN)" },
+      { field: "value", label: "Value" },
+      { field: "suffix", label: "Suffix" },
+    ],
+    fields: [
+      { name: "label_en", label: "Label (EN)", type: "text", required: true },
+      { name: "label_mr", label: "Label (MR)", type: "text", required: true },
+      { name: "value", label: "Value", type: "text", required: true, placeholder: "e.g. 1946" },
+      { name: "suffix", label: "Suffix", type: "text", placeholder: "e.g. +" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+
+  // ────────── ABOUT ──────────
+  {
+    table: "director_current",
+    slug: "directors-desk",
+    singular: "Director's Desk",
+    plural: "Director's Desk",
+    group: "About",
+    singleton: true,
+    singletonId: 1,
+    listColumns: [],
+    fields: [
+      ...bilingualName(),
+      ...bilingualDesignation(),
+      { name: "message_en", label: "Message (EN)", type: "textarea" },
+      { name: "message_mr", label: "Message (MR)", type: "textarea" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+    ],
+  },
+  {
+    table: "former_directors",
+    slug: "former-directors",
+    singular: "Former director",
+    plural: "Former directors",
+    group: "About",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "name_en", label: "Name (EN)" },
+      { field: "tenure", label: "Tenure" },
+      { field: "display_order", label: "Order" },
+    ],
+    fields: [
+      ...bilingualName(),
+      ...bilingualDesignation(),
+      { name: "tenure", label: "Tenure", type: "text", placeholder: "e.g. 2010–2015" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+  {
+    table: "office_sections",
+    slug: "office-sections",
+    singular: "Office section",
+    plural: "Offices in HQ",
+    group: "About",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "slug", label: "Slug" },
+      { field: "title_en", label: "Title (EN)" },
+      { field: "photo_url", label: "Photo", render: "image" },
+    ],
+    fields: [
+      { name: "slug", label: "Slug", type: "text", required: true, placeholder: "e.g. cipher_branch" },
+      ...bilingualTitle(),
+      { name: "incharge_en", label: "In-charge (EN)", type: "text" },
+      { name: "incharge_mr", label: "In-charge (MR)", type: "text" },
+      { name: "description_en", label: "Description (EN)", type: "textarea" },
+      { name: "description_mr", label: "Description (MR)", type: "textarea" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+  {
+    table: "ranks",
+    slug: "ranks",
+    singular: "Rank",
+    plural: "Ranks",
+    group: "About",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "rank_en", label: "Rank (EN)" },
+      { field: "rank_mr", label: "Rank (MR)" },
+    ],
+    fields: [
+      { name: "rank_en", label: "Rank (EN)", type: "text", required: true },
+      { name: "rank_mr", label: "Rank (MR)", type: "text", required: true },
+      { name: "description_en", label: "Description (EN)", type: "textarea" },
+      { name: "description_mr", label: "Description (MR)", type: "textarea" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+
+  // ────────── CITIZEN ──────────
+  {
+    table: "press_releases",
+    slug: "press-releases",
+    singular: "Press release",
+    plural: "Press releases",
+    group: "Citizen",
+    orderBy: dateDescOrder,
+    listColumns: [
+      { field: "published_date", label: "Date", render: "date" },
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "title_en", label: "Title (EN)" },
+      { field: "pdf_url", label: "PDF", render: "pdf" },
+    ],
+    fields: [
+      ...bilingualTitle(),
+      { name: "description_en", label: "Description (EN)", type: "textarea" },
+      { name: "description_mr", label: "Description (MR)", type: "textarea" },
+      { name: "published_date", label: "Published date", type: "date" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+    ],
+  },
+  {
+    table: "tenders",
+    slug: "tenders",
+    singular: "Tender",
+    plural: "Tenders",
+    group: "Citizen",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [
+      ...bilingualTitle(),
+      { name: "published_date", label: "Published date", type: "date" },
+      { name: "last_date", label: "Last date", type: "date" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+      { name: "file_size_kb", label: "File size (KB)", type: "number" },
+    ],
+  },
+  {
+    table: "recruitments",
+    slug: "recruitments",
+    singular: "Recruitment",
+    plural: "Recruitments",
+    group: "Citizen",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [
+      ...bilingualTitle(),
+      { name: "published_date", label: "Published date", type: "date" },
+      { name: "last_date", label: "Last date", type: "date" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+      { name: "file_size_kb", label: "File size (KB)", type: "number" },
+    ],
+  },
+  {
+    table: "rti_documents",
+    slug: "rti-documents",
+    singular: "RTI document",
+    plural: "RTI documents",
+    group: "Citizen",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "title_en", label: "Title (EN)" },
+      { field: "title_mr", label: "Title (MR)" },
+      { field: "pdf_url", label: "PDF", render: "pdf" },
+    ],
+    fields: [
+      ...bilingualTitle(),
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+      { name: "file_size_kb", label: "File size (KB)", type: "number" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+
+  // ────────── POLICE ──────────
+  {
+    table: "gazettes",
+    slug: "gazettes",
+    singular: "Gazette",
+    plural: "Gazettes",
+    group: "Police",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [
+      ...bilingualTitle(),
+      { name: "published_date", label: "Published date", type: "date" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+      { name: "file_size_kb", label: "File size (KB)", type: "number" },
+    ],
+  },
+  {
+    table: "promotion_orders",
+    slug: "promotion-orders",
+    singular: "Promotion order",
+    plural: "Promotion orders",
+    group: "Police",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [...bilingualTitle(), ...dateAndPdf()],
+  },
+  {
+    table: "transfer_orders",
+    slug: "transfer-orders",
+    singular: "Transfer order",
+    plural: "Transfer orders",
+    group: "Police",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [...bilingualTitle(), ...dateAndPdf()],
+  },
+  {
+    table: "gradation_lists",
+    slug: "gradation-lists",
+    singular: "Gradation list",
+    plural: "Gradation lists",
+    group: "Police",
+    orderBy: dateDescOrder,
+    listColumns: datePdfListCols(),
+    fields: [...bilingualTitle(), ...dateAndPdf()],
+  },
+  {
+    table: "officers",
+    slug: "officers",
+    singular: "Officer",
+    plural: "Officers",
+    group: "Police",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "name_en", label: "Name (EN)" },
+      { field: "designation_en", label: "Designation" },
+      { field: "email", label: "Email" },
+      { field: "contact", label: "Contact" },
+    ],
+    fields: [
+      ...bilingualName(),
+      ...bilingualDesignation(),
+      { name: "email", label: "Email", type: "text" },
+      { name: "contact", label: "Contact", type: "text" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+
+  // ────────── TRAINING ──────────
+  {
+    table: "training_calendars",
+    slug: "training-calendars",
+    singular: "Calendar",
+    plural: "Training calendars",
+    group: "Training",
+    orderBy: { column: "year", ascending: false },
+    listColumns: [
+      { field: "year", label: "Year" },
+      { field: "pdf_url", label: "PDF", render: "pdf" },
+    ],
+    fields: [
+      { name: "year", label: "Year", type: "number", required: true, placeholder: "e.g. 2025" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+    ],
+  },
+  {
+    table: "training_schedules",
+    slug: "training-schedules",
+    singular: "Schedule",
+    plural: "Training schedules",
+    group: "Training",
+    orderBy: { column: "date_from", ascending: false },
+    listColumns: [
+      { field: "course_name_en", label: "Course (EN)" },
+      { field: "date_from", label: "From", render: "date" },
+      { field: "date_to", label: "To", render: "date" },
+      { field: "eligibility_en", label: "Eligibility" },
+      { field: "pdf_url", label: "PDF", render: "pdf" },
+    ],
+    fields: [
+      { name: "course_name_en", label: "Course name (EN)", type: "text", required: true },
+      { name: "course_name_mr", label: "Course name (MR)", type: "text", required: true },
+      { name: "duration_en", label: "Duration (EN)", type: "text" },
+      { name: "duration_mr", label: "Duration (MR)", type: "text" },
+      { name: "date_from", label: "Date from", type: "date" },
+      { name: "date_to", label: "Date to", type: "date" },
+      { name: "eligibility_en", label: "Eligibility (EN)", type: "text" },
+      { name: "eligibility_mr", label: "Eligibility (MR)", type: "text" },
+      { name: "coordinator_en", label: "Coordinator (EN)", type: "text" },
+      { name: "coordinator_mr", label: "Coordinator (MR)", type: "text" },
+      { name: "pdf_url", label: "PDF", type: "file", bucket: "pdfs" },
+    ],
+  },
+  {
+    table: "faculty",
+    slug: "faculty",
+    singular: "Faculty member",
+    plural: "Faculty",
+    group: "Training",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "name_en", label: "Name (EN)" },
+      { field: "designation_en", label: "Designation" },
+      { field: "email", label: "Email" },
+    ],
+    fields: [
+      ...bilingualName(),
+      ...bilingualDesignation(),
+      { name: "email", label: "Email", type: "text" },
+      { name: "contact", label: "Contact", type: "text" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+
+  // ────────── OTHER ──────────
+  {
+    table: "welfare_activities",
+    slug: "welfare-activities",
+    singular: "Welfare activity",
+    plural: "Welfare activities",
+    group: "Other",
+    orderBy: { column: "activity_date", ascending: false },
+    listColumns: [
+      { field: "activity_date", label: "Date", render: "date" },
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "title_en", label: "Title (EN)" },
+    ],
+    fields: [
+      ...bilingualTitle(),
+      { name: "activity_date", label: "Activity date", type: "date" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos" },
+    ],
+  },
+  {
+    table: "photo_gallery",
+    slug: "photo-gallery",
+    singular: "Photo",
+    plural: "Photo gallery",
+    group: "Other",
+    orderBy: orderDescOrder,
+    listColumns: [
+      { field: "display_order", label: "Order" },
+      { field: "photo_url", label: "Photo", render: "image" },
+      { field: "title_en", label: "Title (EN)" },
+      { field: "taken_date", label: "Taken", render: "date" },
+    ],
+    fields: [
+      { name: "title_en", label: "Title (EN)", type: "text" },
+      { name: "title_mr", label: "Title (MR)", type: "text" },
+      { name: "photo_url", label: "Photo", type: "file", bucket: "photos", required: true },
+      { name: "taken_date", label: "Taken date", type: "date" },
+      { name: "display_order", label: "Display order", type: "number" },
+    ],
+  },
+];

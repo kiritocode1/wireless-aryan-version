@@ -163,6 +163,15 @@ import Faculty from "./pages/Faculty";
 // ⚡ Flash Section
 import FlashSection from "./components/FlashSection";
 
+// 🔐 Admin
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
+import AdminLayout from "./layout/AdminLayout";
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminResource from "./pages/admin/Resource";
+import AdminSiteSettings from "./pages/admin/SiteSettings";
+
 
        {/* Training Calendar route */}
       //  import TrainingCalendar from ';
@@ -201,7 +210,7 @@ const AppRoutes = () => (
 
       {/* 👮 Police Section */}
       <Route path="police/gazette" element={<Gazette />} />
-      <Route path="police/officers" element={<ListOfOfficers goBack={undefined} />} />
+      <Route path="police/officers" element={<ListOfOfficers />} />
       <Route path="police/promotions" element={<PromotionOrders />} />
       <Route path="police/transfers" element={<Transfers />} />
       <Route path="police/gradation" element={<GradationList />} />
@@ -245,6 +254,16 @@ const AppRoutes = () => (
       {/* 🚫 404 Page */}
       <Route path="*" element={<NotFound />} />
     </Route>
+
+    {/* 🔐 Admin (no public navbar/footer) */}
+    <Route path="/admin/login" element={<AdminLogin />} />
+    <Route path="/admin" element={<ProtectedAdminRoute />}>
+      <Route element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="site-settings" element={<AdminSiteSettings />} />
+        <Route path=":slug" element={<AdminResource />} />
+      </Route>
+    </Route>
   </Routes>
 );
 
@@ -253,9 +272,11 @@ const App = () => (
     <LanguageProvider>
       <TooltipProvider>
         <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <AppRoutes />
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>
