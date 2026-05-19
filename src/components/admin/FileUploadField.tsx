@@ -1,7 +1,15 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Upload, X, FileText, ImageIcon } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import {
+  Upload,
+  X,
+  FileText,
+  ImageIcon,
+  RefreshCw,
+  ExternalLink,
+} from "lucide-react";
 import { Bucket, uploadFile } from "@/lib/admin/storage";
 import { toast } from "sonner";
 
@@ -14,73 +22,149 @@ type Props = {
 };
 
 export default function FileUploadField({ label, bucket, value, onChange, accept }: Props) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const isImage = bucket === "photos";
+  const defaultAccept = accept ?? (isImage ? "image/*" : "application/pdf");
 
-  const handleSelect = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const upload = async (file: File) => {
     setUploading(true);
+    setProgress(15);
+    const tick = setInterval(() => setProgress((p) => Math.min(p + 10, 85)), 200);
     try {
       const url = await uploadFile(bucket, file);
+      setProgress(100);
       onChange(url);
       toast.success("Uploaded");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";
       toast.error(msg);
     } finally {
+      clearInterval(tick);
       setUploading(false);
+      setTimeout(() => setProgress(0), 400);
     }
   };
+
+  const handleSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) await upload(file);
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLLabelElement | HTMLDivElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) await upload(file);
+  };
+
+  const onDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+  const onDragLeave = () => setDragging(false);
 
   return (
     <div className="space-y-2">
       {label && <Label>{label}</Label>}
+
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        accept={defaultAccept}
+        onChange={handleSelect}
+        disabled={uploading}
+      />
+
       {value ? (
-        <div className="flex items-start gap-3 rounded-md border p-3">
+        <div
+          onDrop={handleDrop}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          className={`flex items-start gap-4 rounded-md border p-3 dark:border-gray-800 transition ${
+            dragging ? "border-blue-400 bg-blue-50/50 dark:bg-blue-950/20" : ""
+          }`}
+        >
           {isImage ? (
-            <img src={value} alt="" className="w-20 h-20 object-cover rounded" />
+            <img
+              src={value}
+              alt=""
+              className="w-28 h-28 object-cover rounded-md border dark:border-gray-800"
+            />
           ) : (
-            <div className="w-20 h-20 rounded bg-muted flex items-center justify-center">
-              <FileText className="w-8 h-8 text-muted-foreground" />
+            <div className="w-28 h-28 rounded-md bg-muted flex items-center justify-center border dark:border-gray-800">
+              <FileText className="w-10 h-10 text-muted-foreground" />
             </div>
           )}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-2">
             <a
               href={value}
               target="_blank"
               rel="noreferrer"
-              className="text-sm text-blue-600 hover:underline break-all"
+              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline break-all"
             >
               {value.split("/").pop()}
+              <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
-            <div className="mt-2">
+            {uploading && <Progress value={progress} className="h-1.5" />}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Replace
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => onChange(null)}
+                disabled={uploading}
               >
-                <X className="w-3.5 h-3.5 mr-1" /> Remove
+                <X className="w-3.5 h-3.5 mr-1.5" /> Remove
               </Button>
             </div>
           </div>
         </div>
       ) : (
-        <label className="flex items-center gap-2 rounded-md border border-dashed p-4 cursor-pointer hover:bg-muted/30 transition">
+        <label
+          onDrop={handleDrop}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          className={`flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 cursor-pointer transition ${
+            dragging
+              ? "border-blue-400 bg-blue-50/50 dark:bg-blue-950/20"
+              : "hover:bg-muted/30 dark:border-gray-800"
+          }`}
+        >
           {isImage ? (
-            <ImageIcon className="w-5 h-5 text-muted-foreground" />
+            <ImageIcon className="w-6 h-6 text-muted-foreground" />
           ) : (
-            <Upload className="w-5 h-5 text-muted-foreground" />
+            <Upload className="w-6 h-6 text-muted-foreground" />
           )}
-          <span className="text-sm text-muted-foreground">
-            {uploading ? "Uploading…" : `Click to upload ${isImage ? "photo" : "PDF"}`}
-          </span>
+          <p className="text-sm text-foreground">
+            {uploading ? "Uploading…" : (
+              <>
+                <span className="font-medium">Click to upload</span>
+                <span className="text-muted-foreground"> or drag &amp; drop</span>
+              </>
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {isImage ? "PNG, JPG, WEBP" : "PDF only"}
+          </p>
+          {uploading && <Progress value={progress} className="h-1.5 w-40" />}
           <input
             type="file"
             className="hidden"
-            accept={accept ?? (isImage ? "image/*" : "application/pdf")}
+            accept={defaultAccept}
             onChange={handleSelect}
             disabled={uploading}
           />
