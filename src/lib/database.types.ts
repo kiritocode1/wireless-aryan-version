@@ -17,6 +17,7 @@ export type Database = {
       bulletins: {
         Row: {
           created_at: string
+          updated_at: string
           id: string
           pdf_url: string | null
           published_date: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -81,6 +84,7 @@ export type Database = {
         Row: {
           contact: string | null
           created_at: string
+          updated_at: string
           designation_en: string | null
           designation_mr: string | null
           display_order: number
@@ -93,6 +97,7 @@ export type Database = {
         Insert: {
           contact?: string | null
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -105,6 +110,7 @@ export type Database = {
         Update: {
           contact?: string | null
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -119,6 +125,7 @@ export type Database = {
       former_directors: {
         Row: {
           created_at: string
+          updated_at: string
           designation_en: string | null
           designation_mr: string | null
           display_order: number
@@ -130,6 +137,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -141,6 +149,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -155,6 +164,7 @@ export type Database = {
       gazettes: {
         Row: {
           created_at: string
+          updated_at: string
           file_size_kb: number | null
           id: string
           pdf_url: string | null
@@ -164,6 +174,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           pdf_url?: string | null
@@ -173,6 +184,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           pdf_url?: string | null
@@ -185,6 +197,7 @@ export type Database = {
       gradation_lists: {
         Row: {
           created_at: string
+          updated_at: string
           id: string
           pdf_url: string | null
           published_date: string
@@ -193,6 +206,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -201,6 +215,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -212,6 +227,7 @@ export type Database = {
       home_slider: {
         Row: {
           created_at: string
+          updated_at: string
           display_order: number
           id: string
           is_active: boolean
@@ -223,6 +239,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           is_active?: boolean
@@ -234,6 +251,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           is_active?: boolean
@@ -248,6 +266,7 @@ export type Database = {
       impact_stats: {
         Row: {
           created_at: string
+          updated_at: string
           display_order: number
           id: string
           label_en: string
@@ -257,6 +276,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           label_en: string
@@ -266,6 +286,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           label_en?: string
@@ -278,6 +299,7 @@ export type Database = {
       office_sections: {
         Row: {
           created_at: string
+          updated_at: string
           description_en: string | null
           description_mr: string | null
           display_order: number
@@ -291,6 +313,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           display_order?: number
@@ -304,6 +327,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           display_order?: number
@@ -321,6 +345,7 @@ export type Database = {
         Row: {
           contact: string | null
           created_at: string
+          updated_at: string
           designation_en: string | null
           designation_mr: string | null
           display_order: number
@@ -332,6 +357,7 @@ export type Database = {
         Insert: {
           contact?: string | null
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -343,6 +369,7 @@ export type Database = {
         Update: {
           contact?: string | null
           created_at?: string
+          updated_at?: string
           designation_en?: string | null
           designation_mr?: string | null
           display_order?: number
@@ -356,6 +383,7 @@ export type Database = {
       photo_gallery: {
         Row: {
           created_at: string
+          updated_at: string
           display_order: number
           id: string
           photo_url: string
@@ -365,6 +393,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           photo_url: string
@@ -374,6 +403,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           id?: string
           photo_url?: string
@@ -386,6 +416,7 @@ export type Database = {
       press_releases: {
         Row: {
           created_at: string
+          updated_at: string
           description_en: string | null
           description_mr: string | null
           id: string
@@ -397,6 +428,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           id?: string
@@ -408,6 +440,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           id?: string
@@ -422,6 +455,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          updated_at: string
           email: string | null
           full_name: string | null
           id: string
@@ -429,6 +463,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           email?: string | null
           full_name?: string | null
           id: string
@@ -436,6 +471,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
@@ -446,6 +482,7 @@ export type Database = {
       promotion_orders: {
         Row: {
           created_at: string
+          updated_at: string
           id: string
           pdf_url: string | null
           published_date: string
@@ -454,6 +491,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -462,6 +500,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -473,6 +512,7 @@ export type Database = {
       ranks: {
         Row: {
           created_at: string
+          updated_at: string
           description_en: string | null
           description_mr: string | null
           display_order: number
@@ -482,6 +522,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           display_order?: number
@@ -491,6 +532,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           description_en?: string | null
           description_mr?: string | null
           display_order?: number
@@ -503,6 +545,7 @@ export type Database = {
       recruitments: {
         Row: {
           created_at: string
+          updated_at: string
           file_size_kb: number | null
           id: string
           last_date: string | null
@@ -513,6 +556,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           last_date?: string | null
@@ -523,6 +567,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           last_date?: string | null
@@ -536,6 +581,7 @@ export type Database = {
       rti_documents: {
         Row: {
           created_at: string
+          updated_at: string
           display_order: number
           file_size_kb: number | null
           id: string
@@ -545,6 +591,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           file_size_kb?: number | null
           id?: string
@@ -554,6 +601,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           display_order?: number
           file_size_kb?: number | null
           id?: string
@@ -587,6 +635,7 @@ export type Database = {
       tenders: {
         Row: {
           created_at: string
+          updated_at: string
           file_size_kb: number | null
           id: string
           last_date: string | null
@@ -597,6 +646,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           last_date?: string | null
@@ -607,6 +657,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           file_size_kb?: number | null
           id?: string
           last_date?: string | null
@@ -620,18 +671,21 @@ export type Database = {
       training_calendars: {
         Row: {
           created_at: string
+          updated_at: string
           id: string
           pdf_url: string | null
           year: number
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           year: number
         }
         Update: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           year?: number
@@ -645,6 +699,7 @@ export type Database = {
           course_name_en: string
           course_name_mr: string
           created_at: string
+          updated_at: string
           date_from: string | null
           date_to: string | null
           duration_en: string | null
@@ -660,6 +715,7 @@ export type Database = {
           course_name_en: string
           course_name_mr: string
           created_at?: string
+          updated_at?: string
           date_from?: string | null
           date_to?: string | null
           duration_en?: string | null
@@ -675,6 +731,7 @@ export type Database = {
           course_name_en?: string
           course_name_mr?: string
           created_at?: string
+          updated_at?: string
           date_from?: string | null
           date_to?: string | null
           duration_en?: string | null
@@ -689,6 +746,7 @@ export type Database = {
       transfer_orders: {
         Row: {
           created_at: string
+          updated_at: string
           id: string
           pdf_url: string | null
           published_date: string
@@ -697,6 +755,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -705,6 +764,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          updated_at?: string
           id?: string
           pdf_url?: string | null
           published_date?: string
@@ -717,6 +777,7 @@ export type Database = {
         Row: {
           activity_date: string | null
           created_at: string
+          updated_at: string
           id: string
           photo_url: string | null
           title_en: string
@@ -725,6 +786,7 @@ export type Database = {
         Insert: {
           activity_date?: string | null
           created_at?: string
+          updated_at?: string
           id?: string
           photo_url?: string | null
           title_en: string
@@ -733,6 +795,7 @@ export type Database = {
         Update: {
           activity_date?: string | null
           created_at?: string
+          updated_at?: string
           id?: string
           photo_url?: string | null
           title_en?: string

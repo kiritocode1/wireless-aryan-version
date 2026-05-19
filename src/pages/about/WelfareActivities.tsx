@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { type Lang } from "@/lib/format";
+import { type Lang, formatDateTime, updatedLabel } from "@/lib/format";
 import placeholder from "@/assets/21.png";
 
 type Activity = {
@@ -13,6 +13,7 @@ type Activity = {
   title_mr: string;
   photo_url: string | null;
   activity_date: string | null;
+  updated_at: string | null;
 };
 
 export default function WelfareActivities() {
@@ -25,7 +26,7 @@ export default function WelfareActivities() {
     queryFn: async (): Promise<Activity[]> => {
       const { data, error } = await supabase
         .from("welfare_activities")
-        .select("id, title_en, title_mr, photo_url, activity_date")
+        .select("id, title_en, title_mr, photo_url, activity_date, updated_at")
         .order("activity_date", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -35,6 +36,7 @@ export default function WelfareActivities() {
   const welfareItems = activities.map((a) => ({
     title: lang === "mr" ? a.title_mr : a.title_en,
     img: a.photo_url ?? placeholder,
+    updatedAt: a.updated_at,
   }));
 
   return (
@@ -81,6 +83,11 @@ export default function WelfareActivities() {
 
                     <CardContent className="pt-4">
                       <h3 className="text-lg font-medium dark:text-white">{item.title}</h3>
+                      {item.updatedAt && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {updatedLabel(lang)}: {formatDateTime(item.updatedAt, lang)}
+                        </p>
+                      )}
                       <div className="mt-3">
                         <button
                           onClick={() => setSelectedItem(item)}

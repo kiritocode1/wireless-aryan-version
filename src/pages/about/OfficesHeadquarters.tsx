@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useMemo, ReactNode } from "react";
+import { formatDateTime, updatedLabel, type Lang } from "@/lib/format";
 
 import imgAdmin from "@/assets/11.jpg";
 import imgTech from "@/assets/11.jpg";
@@ -43,11 +44,12 @@ type OfficeSection = {
   description_en: string | null;
   description_mr: string | null;
   photo_url: string | null;
+  updated_at: string | null;
 };
 
 export default function OfficersHQ() {
   const { t, language } = useLanguage();
-  const lang = language === "mr" ? "mr" : "en";
+  const lang: Lang = language === "mr" ? "mr" : "en";
   const navigate = useNavigate();
   const goBack = () => navigate("/");
 
@@ -56,7 +58,7 @@ export default function OfficersHQ() {
     queryFn: async (): Promise<OfficeSection[]> => {
       const { data, error } = await supabase
         .from("office_sections")
-        .select("slug, title_en, title_mr, incharge_en, incharge_mr, description_en, description_mr, photo_url");
+        .select("slug, title_en, title_mr, incharge_en, incharge_mr, description_en, description_mr, photo_url, updated_at");
       if (error) throw error;
       return data ?? [];
     },
@@ -92,6 +94,7 @@ export default function OfficersHQ() {
       ? t(incharge)
       : null;
     const displayDescription = o ? (lang === "mr" ? o.description_mr : o.description_en) : null;
+    const displayUpdatedAt = o?.updated_at ?? null;
 
     return (
       <Card className="overflow-hidden shadow-xl border-none hover:shadow-2xl transition-all duration-500 rounded-3xl">
@@ -100,6 +103,11 @@ export default function OfficersHQ() {
           <h2 className="text-4xl font-extrabold bg-gradient-to-r from-violet-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
             {displayTitle}
           </h2>
+          {displayUpdatedAt && (
+            <p className="text-xs text-gray-500">
+              {updatedLabel(lang)}: {formatDateTime(displayUpdatedAt, lang)}
+            </p>
+          )}
           {displayIncharge && (
             <p className="text-lg italic text-gray-700">
               <span className="font-semibold not-italic">{t("inCharge")}: </span> {displayIncharge}

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { type Lang } from "@/lib/format";
+import { type Lang, formatDateTime, updatedLabel } from "@/lib/format";
 
 type Photo = {
   id: string;
@@ -15,6 +15,7 @@ type Photo = {
   photo_url: string;
   taken_date: string | null;
   display_order: number;
+  updated_at: string | null;
 };
 
 export default function PhotoGallery() {
@@ -28,7 +29,7 @@ export default function PhotoGallery() {
     queryFn: async (): Promise<Photo[]> => {
       const { data, error } = await supabase
         .from("photo_gallery")
-        .select("id, title_en, title_mr, photo_url, taken_date, display_order")
+        .select("id, title_en, title_mr, photo_url, taken_date, display_order, updated_at")
         .order("display_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -38,6 +39,7 @@ export default function PhotoGallery() {
   const galleryItems = photos.map((p) => ({
     src: p.photo_url,
     caption: lang === "mr" ? p.title_mr : p.title_en,
+    updatedAt: p.updated_at,
   }));
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -99,11 +101,18 @@ export default function PhotoGallery() {
                 alt={item.caption ?? ""}
                 className="w-full h-44 sm:h-96 object-cover rounded-t-3xl"
               />
-              {item.caption && (
-                <CardContent className="p-6 text-center">
-                  <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">
-                    {item.caption}
-                  </p>
+              {(item.caption || item.updatedAt) && (
+                <CardContent className="p-6 text-center space-y-1">
+                  {item.caption && (
+                    <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">
+                      {item.caption}
+                    </p>
+                  )}
+                  {item.updatedAt && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {updatedLabel(lang)}: {formatDateTime(item.updatedAt, lang)}
+                    </p>
+                  )}
                 </CardContent>
               )}
             </Card>

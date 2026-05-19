@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, LayoutDashboard, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { LogOut, Home, LayoutDashboard, Settings, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { resourceConfigs } from "@/lib/admin/resources";
 import { cn } from "@/lib/utils";
@@ -10,15 +11,23 @@ export default function AdminLayout() {
   const { signOut, session } = useAuth();
   const navigate = useNavigate();
 
+  const [navQuery, setNavQuery] = useState("");
+
   const groups = useMemo(() => {
+    const q = navQuery.trim().toLowerCase();
+    const filtered = q
+      ? resourceConfigs.filter(
+          (c) => c.plural.toLowerCase().includes(q) || c.group.toLowerCase().includes(q),
+        )
+      : resourceConfigs;
     const map = new Map<string, typeof resourceConfigs>();
-    for (const c of resourceConfigs) {
+    for (const c of filtered) {
       const list = map.get(c.group) ?? [];
       list.push(c);
       map.set(c.group, list);
     }
     return Array.from(map.entries());
-  }, []);
+  }, [navQuery]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -50,26 +59,42 @@ export default function AdminLayout() {
 
       <div className="flex">
         <aside className="w-64 shrink-0 border-r bg-white dark:bg-gray-900 dark:border-gray-800 min-h-[calc(100vh-56px)] sticky top-14 self-start">
-          <nav className="p-4 space-y-6">
-            <NavItem to="/admin" end icon={<LayoutDashboard className="w-4 h-4" />}>
-              Dashboard
-            </NavItem>
-            <NavItem to="/admin/site-settings" icon={<Settings className="w-4 h-4" />}>
-              Site settings
-            </NavItem>
+          <nav className="p-4 space-y-5">
+            <div className="space-y-1">
+              <NavItem to="/admin" end icon={<LayoutDashboard className="w-4 h-4" />}>
+                Dashboard
+              </NavItem>
+              <NavItem to="/admin/site-settings" icon={<Settings className="w-4 h-4" />}>
+                Site settings
+              </NavItem>
+            </div>
 
-            {groups.map(([group, items]) => (
-              <div key={group} className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3">
-                  {group}
-                </p>
-                {items.map((cfg) => (
-                  <NavItem key={cfg.slug} to={`/admin/${cfg.slug}`}>
-                    {cfg.plural}
-                  </NavItem>
-                ))}
-              </div>
-            ))}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                value={navQuery}
+                onChange={(e) => setNavQuery(e.target.value)}
+                placeholder="Filter collections…"
+                className="pl-8 h-9 text-sm"
+              />
+            </div>
+
+            {groups.length === 0 ? (
+              <p className="text-xs text-muted-foreground px-3">No matches.</p>
+            ) : (
+              groups.map(([group, items]) => (
+                <div key={group} className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3">
+                    {group}
+                  </p>
+                  {items.map((cfg) => (
+                    <NavItem key={cfg.slug} to={`/admin/${cfg.slug}`}>
+                      {cfg.plural}
+                    </NavItem>
+                  ))}
+                </div>
+              ))
+            )}
           </nav>
         </aside>
 

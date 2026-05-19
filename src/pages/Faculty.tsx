@@ -1,7 +1,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { type Lang } from "@/lib/format";
+import { type Lang, formatDateTime, updatedLabel } from "@/lib/format";
 
 type FacultyMember = {
   id: string;
@@ -13,6 +13,7 @@ type FacultyMember = {
   contact: string | null;
   photo_url: string | null;
   display_order: number;
+  updated_at: string | null;
 };
 
 export default function PlanningDepartment() {
@@ -24,7 +25,7 @@ export default function PlanningDepartment() {
     queryFn: async (): Promise<FacultyMember[]> => {
       const { data, error } = await supabase
         .from("faculty")
-        .select("id, name_en, name_mr, designation_en, designation_mr, email, contact, photo_url, display_order")
+        .select("id, name_en, name_mr, designation_en, designation_mr, email, contact, photo_url, display_order, updated_at")
         .order("display_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -76,6 +77,11 @@ export default function PlanningDepartment() {
                     {member.contact && (
                       <p className={textClass}>
                         {t("common.phone")}: {member.contact}
+                      </p>
+                    )}
+                    {member.updated_at && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        {updatedLabel(lang)}: {formatDateTime(member.updated_at, lang)}
                       </p>
                     )}
                   </div>

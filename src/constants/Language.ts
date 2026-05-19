@@ -101,6 +101,7 @@ export const EN = {
 
   "nav.contact": "Contact Us",
   "nav.contactUs": "Contact Us",
+  "nav.admin": "Admin",
 
 
 
@@ -1403,6 +1404,7 @@ export const MR = {
 
   "nav.contact": "संपर्क",
   "nav.contactUs": "आमच्याशी संपर्क साधा",
+  "nav.admin": "प्रशासन",
 
   // Hero Section
   "police.helpline": "पोलीस हेल्पलाईन",

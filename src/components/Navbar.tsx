@@ -1121,6 +1121,7 @@ const Navbar: React.FC = () => {
     { name: t("nav.recruitments"), url: "/recruitments" },
     { name: t("nav.gallery"), url: "/gallery" },
     { name: t("nav.contact"), url: "/contact" },
+    { name: t("nav.admin"), url: "/admin" },
   ];
 
   const handleNavigation = (url: string) => {

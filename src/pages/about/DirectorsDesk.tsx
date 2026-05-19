@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { type Lang } from "@/lib/format";
+import { type Lang, formatDateTime, updatedLabel } from "@/lib/format";
 
 type Director = {
   id: number;
@@ -17,6 +17,7 @@ type Director = {
   message_en: string | null;
   message_mr: string | null;
   photo_url: string | null;
+  updated_at: string | null;
 };
 
 export default function DirectorsDesk() {
@@ -30,7 +31,7 @@ export default function DirectorsDesk() {
     queryFn: async (): Promise<Director | null> => {
       const { data, error } = await supabase
         .from("director_current")
-        .select("id, name_en, name_mr, designation_en, designation_mr, message_en, message_mr, photo_url")
+        .select("id, name_en, name_mr, designation_en, designation_mr, message_en, message_mr, photo_url, updated_at")
         .eq("id", 1)
         .maybeSingle();
       if (error) throw error;
@@ -82,6 +83,11 @@ export default function DirectorsDesk() {
                          border-4 border-gray-200 dark:border-gray-700 shadow-xl
                          transition-all duration-500 group-hover:border-blue-300 dark:group-hover:border-blue-600 group-hover:shadow-2xl"
             />
+            {director?.updated_at && (
+              <p className="relative text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
+                {updatedLabel(lang)}: {formatDateTime(director.updated_at, lang)}
+              </p>
+            )}
           </div>
 
           <div className="space-y-4">
