@@ -31,7 +31,6 @@ import {
   Search,
   LayoutGrid,
   Rows3,
-  Inbox,
 } from "lucide-react";
 import ResourceForm from "@/components/admin/ResourceForm";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -175,14 +174,15 @@ function ListView({ config }: { config: ResourceConfig }) {
       ) : filteredRows.length === 0 ? (
         rows.length === 0 ? (
           <EmptyState
-            icon={<Inbox className="w-6 h-6" />}
+            icon={<Plus className="w-6 h-6" />}
             title={`No ${config.plural.toLowerCase()} yet`}
-            description={`Click "New ${config.singular}" to add your first one.`}
+            description={`Start by adding your first ${config.singular.toLowerCase()}. Everything you save here will show up on the public site instantly.`}
             action={
-              <Button onClick={() => setCreating(true)}>
-                <Plus className="w-4 h-4 mr-1.5" /> New {config.singular}
+              <Button size="lg" onClick={() => setCreating(true)}>
+                <Plus className="w-4 h-4 mr-1.5" /> Add your first {config.singular.toLowerCase()}
               </Button>
             }
+            hint={`This collection has ${config.fields.length} field${config.fields.length === 1 ? "" : "s"} to fill out`}
           />
         ) : (
           <EmptyState
