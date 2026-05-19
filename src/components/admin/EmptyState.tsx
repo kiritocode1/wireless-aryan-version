@@ -21,10 +21,11 @@ export default function EmptyState({ icon, title, description, action, hint }: P
           backgroundSize: "32px 32px",
         }}
       />
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
 
       <div className="relative flex flex-col items-center justify-center text-center px-6 py-16">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 mb-5">
+        <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-5 ring-4 ring-indigo-50 dark:ring-indigo-950/40">
           {icon ?? <Inbox className="w-6 h-6" />}
         </div>
         <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</p>

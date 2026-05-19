@@ -1,4 +1,4 @@
-import { FormEvent, useState, useMemo } from "react";
+import { FormEvent, useState, useMemo, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import FileUploadField from "./FileUploadField";
 import { FieldDef } from "@/lib/admin/types";
 import { AlertCircle } from "lucide-react";
+import { useHotkey } from "@/hooks/useHotkey";
 
 type Props = {
   fields: FieldDef[];
   initial: Record<string, unknown>;
   submitLabel?: string;
+  confirmOnDirty?: boolean;
   onSubmit: (values: Record<string, unknown>) => Promise<void>;
   onCancel?: () => void;
 };
@@ -24,20 +26,52 @@ export default function ResourceForm({
   fields,
   initial,
   submitLabel = "Save",
+  confirmOnDirty = false,
   onSubmit,
   onCancel,
 }: Props) {
+  const initialRef = useRef(initial);
   const [values, setValues] = useState<Record<string, unknown>>(() => ({ ...initial }));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   const setField = (name: string, value: unknown) =>
     setValues((prev) => ({ ...prev, [name]: value }));
 
   const layout = useMemo(() => buildLayout(fields), [fields]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const isDirty = useMemo(() => {
+    return fields.some((f) => {
+      const a = values[f.name];
+      const b = initialRef.current[f.name];
+      // treat "" and null as equivalent
+      const na = a === "" ? null : a;
+      const nb = b === "" ? null : b;
+      return na !== nb;
+    });
+  }, [values, fields]);
+
+  // Warn on browser-level navigation/refresh while dirty
+  useEffect(() => {
+    if (!confirmOnDirty || !isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [confirmOnDirty, isDirty]);
+
+  const tryCancel = () => {
+    if (confirmOnDirty && isDirty) {
+      const ok = window.confirm("You have unsaved changes. Discard them?");
+      if (!ok) return;
+    }
+    onCancel?.();
+  };
+
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
@@ -50,8 +84,17 @@ export default function ResourceForm({
     }
   };
 
+  // Cmd/Ctrl+S to save
+  useHotkey(
+    ["mod", "s"],
+    () => {
+      if (!submitting) handleSubmit();
+    },
+    { allowInInput: true },
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
       {layout.map((row, idx) => {
         if (row.kind === "pair") {
           return (
@@ -78,15 +121,28 @@ export default function ResourceForm({
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-3 border-t dark:border-gray-800">
-        {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel} disabled={submitting}>
-            Cancel
+      <div className="flex items-center justify-between gap-2 pt-3 border-t dark:border-gray-800">
+        <p className="text-xs text-muted-foreground">
+          {isDirty ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Unsaved changes
+            </span>
+          ) : (
+            <span className="text-muted-foreground/60">All changes saved</span>
+          )}
+        </p>
+        <div className="flex items-center gap-2">
+          {onCancel && (
+            <Button type="button" variant="ghost" onClick={tryCancel} disabled={submitting}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={submitting || !isDirty}>
+            {submitting ? "Saving…" : submitLabel}
+            <kbd className="ml-2 hidden sm:inline-flex font-mono text-[10px] opacity-70">⌘S</kbd>
           </Button>
-        )}
-        <Button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : submitLabel}
-        </Button>
+        </div>
       </div>
     </form>
   );

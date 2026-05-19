@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { resourceConfigs } from "@/lib/admin/resources";
+import { getGroupTheme } from "@/lib/admin/group-theme";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import RelativeTime from "@/components/admin/RelativeTime";
+import { cn } from "@/lib/utils";
 import { ArrowUpRight, FileText, Image as ImageIcon, Pencil } from "lucide-react";
 import type { Database } from "@/lib/database.types";
 
@@ -92,16 +93,29 @@ export default function AdminDashboard() {
         }
       />
 
-      {/* Group counts */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* Group counts — each group owns one hue, used as a semantic indicator */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {groups.map(([group, items]) => {
           const total = items.reduce((s, c) => s + (counts[c.table] ?? 0), 0);
+          const theme = getGroupTheme(group);
           return (
-            <Card key={group} className="bg-white dark:bg-gray-900 dark:border-gray-800">
+            <Card
+              key={group}
+              className={cn(
+                "relative overflow-hidden border-0 ring-1 transition hover:-translate-y-px hover:shadow-sm",
+                theme.tint,
+                theme.ring,
+              )}
+            >
               <CardContent className="p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">{group}</p>
-                <p className="text-2xl font-semibold mt-1">
-                  {countsLoading ? <Skeleton className="h-7 w-12" /> : total}
+                <div className="flex items-center gap-2">
+                  <span className={cn("w-2 h-2 rounded-full", theme.dot)} />
+                  <p className={cn("text-xs uppercase tracking-wide font-medium", theme.text)}>
+                    {group}
+                  </p>
+                </div>
+                <p className="text-3xl font-semibold mt-2 text-gray-900 dark:text-gray-50 tabular-nums">
+                  {countsLoading ? <Skeleton className="h-8 w-12" /> : total}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {items.length} collection{items.length === 1 ? "" : "s"}
@@ -135,26 +149,36 @@ export default function AdminDashboard() {
               <p className="p-6 text-sm text-muted-foreground text-center">No edits yet.</p>
             ) : (
               <ul className="divide-y dark:divide-gray-800">
-                {recent.map((r) => (
-                  <li key={`${r.table}-${r.id}`}>
-                    <Link
-                      to={`/admin/${r.slug}`}
-                      className="flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition"
-                    >
-                      <Thumb photo={r.photo_url} pdf={r.pdf_url} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{r.title}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-2">
-                          <Badge variant="secondary" className="text-[10px] font-normal py-0">
-                            {r.singular}
-                          </Badge>
-                          <RelativeTime iso={r.updated_at} prefix="Updated" />
-                        </p>
-                      </div>
-                      <ArrowUpRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                    </Link>
-                  </li>
-                ))}
+                {recent.map((r) => {
+                  const cfg = resourceConfigs.find((c) => c.table === r.table);
+                  const theme = cfg ? getGroupTheme(cfg.group) : undefined;
+                  return (
+                    <li key={`${r.table}-${r.id}`}>
+                      <Link
+                        to={`/admin/${r.slug}`}
+                        className="flex items-center gap-3 p-4 hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition"
+                      >
+                        <Thumb photo={r.photo_url} pdf={r.pdf_url} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{r.title}</p>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                                theme?.badge ?? "bg-gray-100 dark:bg-gray-800",
+                              )}
+                            >
+                              <span className={cn("w-1.5 h-1.5 rounded-full", theme?.dot ?? "bg-gray-400")} />
+                              {r.singular}
+                            </span>
+                            <RelativeTime iso={r.updated_at} prefix="Updated" />
+                          </div>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>
@@ -167,17 +191,30 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <ul className="divide-y dark:divide-gray-800">
-              {QUICK_LINKS.map((q) => (
-                <li key={q.slug}>
-                  <Link
-                    to={`/admin/${q.slug}`}
-                    className="flex items-center gap-3 p-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition"
-                  >
-                    <Pencil className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">{q.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {QUICK_LINKS.map((q) => {
+                const cfg = resourceConfigs.find((c) => c.slug === q.slug);
+                const theme = cfg ? getGroupTheme(cfg.group) : undefined;
+                return (
+                  <li key={q.slug}>
+                    <Link
+                      to={`/admin/${q.slug}`}
+                      className="flex items-center gap-3 p-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition group"
+                    >
+                      <span
+                        className={cn(
+                          "w-8 h-8 rounded-md flex items-center justify-center shrink-0",
+                          theme?.tint ?? "bg-gray-100 dark:bg-gray-800",
+                          theme?.text ?? "text-muted-foreground",
+                        )}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </span>
+                      <span className="text-sm flex-1">{q.label}</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition" />
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
