@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +23,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plus,
   Pencil,
   Trash2,
@@ -31,14 +38,23 @@ import {
   Search,
   LayoutGrid,
   Rows3,
+  MoreHorizontal,
+  Copy,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  Eye,
 } from "lucide-react";
+import { useHotkey } from "@/hooks/useHotkey";
 import ResourceForm from "@/components/admin/ResourceForm";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import EmptyState from "@/components/admin/EmptyState";
 import { TableSkeleton, GridSkeleton } from "@/components/admin/ListSkeleton";
 import RelativeTime from "@/components/admin/RelativeTime";
 import { resourceConfigs } from "@/lib/admin/resources";
+import { getGroupTheme } from "@/lib/admin/group-theme";
 import { ResourceConfig, ListColumnDef, FieldDef } from "@/lib/admin/types";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Database } from "@/lib/database.types";
 
@@ -60,10 +76,17 @@ function ListView({ config }: { config: ResourceConfig }) {
   const qc = useQueryClient();
   const [editingRow, setEditingRow] = useState<Row | null>(null);
   const [creating, setCreating] = useState(false);
+  const [initialFromDuplicate, setInitialFromDuplicate] = useState<Record<string, unknown> | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [query, setQuery] = useState("");
   const hasPhoto = config.listColumns.some((c) => c.render === "image");
   const [view, setView] = useState<"table" | "grid">(hasPhoto ? "grid" : "table");
+  const [sort, setSort] = useState<{ field: string; dir: "asc" | "desc" } | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  const isDialogOpen = creating || editingRow !== null;
+  useHotkey(["n"], () => { setCreating(true); setEditingRow(null); }, { enabled: !isDialogOpen });
+  useHotkey(["/"], () => searchRef.current?.focus(), { enabled: !isDialogOpen });
 
   const queryKey = ["admin", config.table];
   const { data: rows = [], isLoading, error } = useQuery({
@@ -94,8 +117,20 @@ function ListView({ config }: { config: ResourceConfig }) {
       qc.invalidateQueries({ queryKey });
       setEditingRow(null);
       setCreating(false);
+      setInitialFromDuplicate(null);
       toast.success("Saved");
     },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async ({ id, display_order }: { id: string | number; display_order: number }) => {
+      const { error } = await tbl(config.table)
+        .update({ display_order, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
     onError: (err: Error) => toast.error(err.message),
   });
 
@@ -113,15 +148,56 @@ function ListView({ config }: { config: ResourceConfig }) {
   });
 
   const filteredRows = useMemo(() => {
-    if (!query.trim()) return rows;
-    const q = query.toLowerCase();
-    return rows.filter((row) =>
-      Object.values(row).some((v) => typeof v === "string" && v.toLowerCase().includes(q)),
-    );
-  }, [rows, query]);
+    const base = !query.trim()
+      ? rows
+      : rows.filter((row) =>
+          Object.values(row).some(
+            (v) => typeof v === "string" && v.toLowerCase().includes(query.toLowerCase()),
+          ),
+        );
+    if (!sort) return base;
+    const copy = [...base];
+    copy.sort((a, b) => {
+      const av = a[sort.field];
+      const bv = b[sort.field];
+      const cmp = compare(av, bv);
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+    return copy;
+  }, [rows, query, sort]);
 
   const titleField = pickTitleField(config.fields);
   const photoField = config.fields.find((f) => f.type === "file" && f.bucket === "photos")?.name;
+  const hasOrder = config.fields.some((f) => f.name === "display_order");
+  const publicHref = publicLinkForSlug(config.slug);
+
+  const handleDuplicate = (row: Row) => {
+    const clone: Record<string, unknown> = {};
+    for (const f of config.fields) clone[f.name] = row[f.name];
+    setInitialFromDuplicate(clone);
+    setCreating(true);
+    setEditingRow(null);
+  };
+
+  const handleMove = (row: Row, dir: "up" | "down") => {
+    if (!hasOrder || row.id == null) return;
+    // Use the row's current rank within the sorted list of all rows
+    const ordered = [...rows].sort((a, b) =>
+      compare(a.display_order ?? 0, b.display_order ?? 0),
+    );
+    const idx = ordered.findIndex((r) => r.id === row.id);
+    const target = dir === "up" ? idx - 1 : idx + 1;
+    if (target < 0 || target >= ordered.length) return;
+    const a = ordered[idx];
+    const b = ordered[target];
+    // Swap their display_order values.
+    const ao = (a.display_order as number | undefined) ?? idx;
+    const bo = (b.display_order as number | undefined) ?? target;
+    reorderMutation.mutate({ id: a.id as string, display_order: bo });
+    reorderMutation.mutate({ id: b.id as string, display_order: ao });
+  };
+
+  const theme = getGroupTheme(config.group);
 
   return (
     <div className="space-y-6">
@@ -129,14 +205,42 @@ function ListView({ config }: { config: ResourceConfig }) {
         title={config.plural}
         description={`Manage ${config.plural.toLowerCase()}.`}
         meta={
-          <span>
-            {isLoading ? "Loading…" : `${filteredRows.length} of ${rows.length} ${rows.length === 1 ? "item" : "items"}`}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
+                theme.badge,
+              )}
+            >
+              <span className={cn("w-1.5 h-1.5 rounded-full", theme.dot)} />
+              {config.group}
+            </span>
+            <span>
+              {isLoading
+                ? "Loading…"
+                : `${filteredRows.length} of ${rows.length} ${rows.length === 1 ? "item" : "items"}`}
+            </span>
+          </div>
         }
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="w-4 h-4 mr-1.5" /> New {config.singular}
-          </Button>
+          <div className="flex items-center gap-2">
+            {publicHref && (
+              <a
+                href={publicHref}
+                target="_blank"
+                rel="noreferrer"
+                className="hidden sm:inline-flex"
+              >
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-1.5" /> View on site
+                </Button>
+              </a>
+            )}
+            <Button onClick={() => { setInitialFromDuplicate(null); setCreating(true); }}>
+              <Plus className="w-4 h-4 mr-1.5" /> New {config.singular}
+              <span className="ml-2 hidden sm:inline-flex font-mono text-[10px] opacity-70">N</span>
+            </Button>
+          </div>
         }
       />
 
@@ -144,11 +248,16 @@ function ListView({ config }: { config: ResourceConfig }) {
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
+            ref={searchRef}
             placeholder={`Search ${config.plural.toLowerCase()}…`}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-8"
+            onKeyDown={(e) => { if (e.key === "Escape") { setQuery(""); e.currentTarget.blur(); } }}
+            className="pl-8 pr-12"
           />
+          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-muted-foreground border bg-white dark:bg-gray-900 dark:border-gray-800">
+            /
+          </kbd>
         </div>
         {hasPhoto && (
           <ToggleGroup
@@ -204,40 +313,61 @@ function ListView({ config }: { config: ResourceConfig }) {
           config={config}
           onEdit={setEditingRow}
           onDelete={setDeleteTarget}
+          onDuplicate={handleDuplicate}
+          onMove={hasOrder ? handleMove : undefined}
         />
       ) : (
         <TableView
           rows={filteredRows}
           config={config}
+          sort={sort}
+          onSort={(field) => {
+            setSort((cur) =>
+              !cur || cur.field !== field
+                ? { field, dir: "asc" }
+                : cur.dir === "asc"
+                ? { field, dir: "desc" }
+                : null,
+            );
+          }}
           onEdit={setEditingRow}
           onDelete={setDeleteTarget}
+          onDuplicate={handleDuplicate}
+          onMove={hasOrder ? handleMove : undefined}
         />
       )}
 
       <Dialog
         open={creating || editingRow !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setEditingRow(null);
-            setCreating(false);
-          }
+          if (open) return;
+          // unsaved guard is handled inside ResourceForm via window confirm only when dirty
+          setEditingRow(null);
+          setCreating(false);
+          setInitialFromDuplicate(null);
         }}
       >
         <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {creating ? `New ${config.singular}` : `Edit ${config.singular}`}
+              {creating
+                ? initialFromDuplicate
+                  ? `Duplicate ${config.singular}`
+                  : `New ${config.singular}`
+                : `Edit ${config.singular}`}
             </DialogTitle>
           </DialogHeader>
           <ResourceForm
             fields={config.fields}
-            initial={editingRow ?? buildDefaults(config)}
+            initial={editingRow ?? initialFromDuplicate ?? buildDefaults(config)}
+            confirmOnDirty
             onSubmit={async (values) => {
               await saveMutation.mutateAsync({ id: editingRow?.id, values });
             }}
             onCancel={() => {
               setEditingRow(null);
               setCreating(false);
+              setInitialFromDuplicate(null);
             }}
           />
         </DialogContent>
@@ -275,13 +405,21 @@ function ListView({ config }: { config: ResourceConfig }) {
 function TableView({
   rows,
   config,
+  sort,
+  onSort,
   onEdit,
   onDelete,
+  onDuplicate,
+  onMove,
 }: {
   rows: Row[];
   config: ResourceConfig;
+  sort: { field: string; dir: "asc" | "desc" } | null;
+  onSort: (field: string) => void;
   onEdit: (r: Row) => void;
   onDelete: (r: Row) => void;
+  onDuplicate: (r: Row) => void;
+  onMove?: (r: Row, dir: "up" | "down") => void;
 }) {
   return (
     <div className="rounded-md border bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
@@ -289,20 +427,38 @@ function TableView({
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800/50 text-left">
             <tr>
-              {config.listColumns.map((col) => (
-                <th key={col.field} className="px-4 py-3 font-medium text-muted-foreground">
-                  {col.label}
-                </th>
-              ))}
-              <th className="px-4 py-3 font-medium text-muted-foreground">Updated</th>
-              <th className="px-4 py-3 w-24"></th>
+              {config.listColumns.map((col) => {
+                const active = sort?.field === col.field;
+                return (
+                  <th
+                    key={col.field}
+                    className="px-4 py-3 font-medium text-muted-foreground select-none cursor-pointer hover:text-foreground transition"
+                    onClick={() => onSort(col.field)}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {col.label}
+                      <SortIcon active={active} dir={sort?.dir} />
+                    </span>
+                  </th>
+                );
+              })}
+              <th
+                className="px-4 py-3 font-medium text-muted-foreground select-none cursor-pointer hover:text-foreground transition"
+                onClick={() => onSort("updated_at")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  Updated
+                  <SortIcon active={sort?.field === "updated_at"} dir={sort?.dir} />
+                </span>
+              </th>
+              <th className="px-4 py-3 w-32"></th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {rows.map((row, idx) => (
               <tr
                 key={String(row.id)}
-                className="border-t dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30"
+                className="border-t dark:border-gray-800 hover:bg-gray-50/70 dark:hover:bg-gray-800/30 transition"
               >
                 {config.listColumns.map((col) => (
                   <td key={col.field} className="px-4 py-3 align-middle">
@@ -312,13 +468,37 @@ function TableView({
                 <td className="px-4 py-3 align-middle text-xs text-muted-foreground whitespace-nowrap">
                   {row.updated_at ? <RelativeTime iso={row.updated_at} /> : "—"}
                 </td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(row)} aria-label="Edit">
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(row)} aria-label="Delete">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                <td className="px-2 py-2 text-right whitespace-nowrap">
+                  <div className="inline-flex items-center gap-0.5">
+                    {onMove && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          aria-label="Move up"
+                          disabled={idx === 0}
+                          onClick={() => onMove(row, "up")}
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          aria-label="Move down"
+                          disabled={idx === rows.length - 1}
+                          onClick={() => onMove(row, "down")}
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(row)} aria-label="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <RowMenu onDuplicate={() => onDuplicate(row)} onDelete={() => onDelete(row)} />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -326,6 +506,35 @@ function TableView({
         </table>
       </div>
     </div>
+  );
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir?: "asc" | "desc" }) {
+  if (!active) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+  return dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+}
+
+function RowMenu({ onDuplicate, onDelete }: { onDuplicate: () => void; onDelete: () => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="More actions">
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onDuplicate}>
+          <Copy className="w-4 h-4 mr-2" /> Duplicate
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/40"
+        >
+          <Trash2 className="w-4 h-4 mr-2" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -337,6 +546,8 @@ function GridView({
   config,
   onEdit,
   onDelete,
+  onDuplicate,
+  onMove,
 }: {
   rows: Row[];
   photoField: string;
@@ -344,18 +555,20 @@ function GridView({
   config: ResourceConfig;
   onEdit: (r: Row) => void;
   onDelete: (r: Row) => void;
+  onDuplicate: (r: Row) => void;
+  onMove?: (r: Row, dir: "up" | "down") => void;
 }) {
   const subtitleField = pickSubtitleField(config.fields, titleField);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {rows.map((row) => {
+      {rows.map((row, idx) => {
         const photo = row[photoField] as string | null;
         const title = titleField ? (row[titleField] as string | null) : null;
         const subtitle = subtitleField ? (row[subtitleField] as string | null) : null;
         return (
           <div
             key={String(row.id)}
-            className="group rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden flex flex-col hover:shadow-md transition"
+            className="group relative rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-0.5 transition"
           >
             <button
               type="button"
@@ -363,13 +576,13 @@ function GridView({
               className="block relative aspect-[4/3] bg-gray-100 dark:bg-gray-800"
             >
               {photo ? (
-                <img src={photo} alt={title ?? ""} className="w-full h-full object-cover" />
+                <img src={photo} alt={title ?? ""} className="w-full h-full object-cover transition group-hover:scale-[1.02]" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                   <FileText className="w-8 h-8" />
                 </div>
               )}
-              {!row.is_active && row.is_active === false && (
+              {row.is_active === false && (
                 <Badge variant="secondary" className="absolute top-2 left-2">Inactive</Badge>
               )}
             </button>
@@ -380,13 +593,35 @@ function GridView({
                 <span className="text-xs text-muted-foreground">
                   {row.updated_at ? <RelativeTime iso={row.updated_at} /> : ""}
                 </span>
-                <div className="flex">
+                <div className="flex items-center gap-0.5">
+                  {onMove && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={idx === 0}
+                        onClick={() => onMove(row, "up")}
+                        aria-label="Move up"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={idx === rows.length - 1}
+                        onClick={() => onMove(row, "down")}
+                        aria-label="Move down"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </Button>
+                    </>
+                  )}
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(row)}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(row)}>
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  <RowMenu onDuplicate={() => onDuplicate(row)} onDelete={() => onDelete(row)} />
                 </div>
               </div>
             </div>
@@ -425,12 +660,27 @@ function SingletonView({ config }: { config: ResourceConfig }) {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const theme = getGroupTheme(config.group);
+
   return (
     <div className="space-y-6 max-w-3xl">
       <AdminPageHeader
         title={config.singular}
         description="Edit the single record for this section."
-        meta={row?.updated_at ? <RelativeTime iso={row.updated_at} prefix="Last updated" /> : undefined}
+        meta={
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
+                theme.badge,
+              )}
+            >
+              <span className={cn("w-1.5 h-1.5 rounded-full", theme.dot)} />
+              {config.group}
+            </span>
+            {row?.updated_at && <RelativeTime iso={row.updated_at} prefix="Last updated" />}
+          </div>
+        }
       />
       <div className="rounded-md border bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
         {isLoading ? (
@@ -494,6 +744,42 @@ function pickSubtitleField(fields: FieldDef[], title: string | null): string | n
     names.find((n) => n === "subtitle_en") ??
     null
   );
+}
+
+function compare(a: unknown, b: unknown): number {
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+}
+
+// Map admin slugs to their public routes so "View on site" works.
+function publicLinkForSlug(slug: string): string | null {
+  const map: Record<string, string> = {
+    "home-slider": "/",
+    "directors-desk": "/director-message",
+    "former-directors": "/former-directors",
+    "office-sections": "/officers-hq",
+    "ranks": "/about-department",
+    "press-releases": "/press-release",
+    "tenders": "/tender",
+    "recruitments": "/recruitments",
+    "rti-documents": "/rti",
+    "gazettes": "/gazette",
+    "promotion-orders": "/promotion-orders",
+    "transfer-orders": "/transfer-orders",
+    "gradation-lists": "/gradation-list",
+    "officers": "/list-of-officers",
+    "training-calendars": "/training-calendar",
+    "training-schedules": "/training-calendar",
+    "faculty": "/faculty",
+    "welfare-activities": "/welfare-activities",
+    "photo-gallery": "/photo-gallery",
+    "bulletins": "/",
+    "impact-stats": "/",
+  };
+  return map[slug] ?? null;
 }
 
 function CellValue({ value, col }: { value: unknown; col: ListColumnDef }) {
