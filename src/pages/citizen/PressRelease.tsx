@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { type Lang } from "@/lib/format";
+import { type Lang, formatDateTime, updatedLabel } from "@/lib/format";
 
 type PressRelease = {
   id: string;
@@ -16,6 +16,7 @@ type PressRelease = {
   photo_url: string | null;
   pdf_url: string | null;
   published_date: string;
+  updated_at: string | null;
 };
 
 export default function PressRelease() {
@@ -29,7 +30,7 @@ export default function PressRelease() {
     queryFn: async (): Promise<PressRelease[]> => {
       const { data, error } = await supabase
         .from("press_releases")
-        .select("id, title_en, title_mr, description_en, description_mr, photo_url, pdf_url, published_date")
+        .select("id, title_en, title_mr, description_en, description_mr, photo_url, pdf_url, published_date, updated_at")
         .order("published_date", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -102,6 +103,11 @@ export default function PressRelease() {
                     {desc && (
                       <p className="text-gray-800 dark:text-gray-200 text-lg leading-relaxed text-justify">
                         {desc}
+                      </p>
+                    )}
+                    {item.updated_at && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {updatedLabel(lang)}: {formatDateTime(item.updated_at, lang)}
                       </p>
                     )}
                   </CardContent>

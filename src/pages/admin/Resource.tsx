@@ -278,6 +278,10 @@ function cleanPayload(values: Record<string, unknown>, config: ResourceConfig): 
     if (typeof v === "string" && v.trim() === "") out[k] = null;
     else out[k] = v;
   }
+  // Stamp updated_at on every admin write (insert, update, upsert) so the
+  // timestamp reflects the latest asset/content change even if the DB trigger
+  // is bypassed. Server-side trigger remains the source of truth.
+  out.updated_at = new Date().toISOString();
   return out;
 }
 
